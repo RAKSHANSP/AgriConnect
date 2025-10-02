@@ -1,22 +1,20 @@
 import { Routes } from '@angular/router';
-import { HomeComponent } from './components/home/home';
-import { LoginComponent } from './components/login/login.component';
-import { SignupComponent } from './components/signup/signup.component';
-import { DashboardComponent } from './components/dashboard/dashboard';
-import { ProductList } from './components/product-list/product-list';
-import { Weather } from './components/weather/weather';
-import { Chat} from './components/chat/chat';
-import { OfficialsChat} from './components/officials-chat/officials-chat';
+import { Home } from './home/home';
+import { Signup } from './signup/signup';
+import { Login} from './login/login';
+import { Dashboard } from './dashboard/dashboard';
+import { WeatherComponent } from './weather/weather';
+import { ProductComponent } from './product/product';
+import { DealerMarketComponent } from './dealer-market/dealer-market';
+import { InformationSharingComponent } from './information-sharing/information-sharing';
 
 export const routes: Routes = [
-  { path: '', component: HomeComponent }, // Initial landing page
-  { path: 'login', component: LoginComponent },
-  { path: 'signup', component: SignupComponent},
-  { path: 'dashboard', component: DashboardComponent, children: [
-      { path: 'products', component: ProductList },
-      { path: 'weather', component: Weather },
-      { path: 'chat', component: Chat},
-      { path: 'officials', component: OfficialsChat }
-  ]},
-  { path: '**', redirectTo: '' } // fallback
+  { path: '', component: Home },
+  { path: 'signup', component: Signup },
+  { path: 'login', component: Login },
+  { path: 'dashboard', component: Dashboard },
+  { path: 'weather', component: WeatherComponent },
+  { path: 'products', component: ProductComponent },
+  { path: 'dealer-market', component: DealerMarketComponent },
+  { path: 'information-sharing', component: InformationSharingComponent },
 ];

@@ -1,0 +1,52 @@
+<div style="text-align: center; padding: 20px; max-width: 800px; margin: 0 auto;">
+  <h2>Dealer and Market Details</h2>
+  <div style="margin-bottom: 20px;">
+    <input type="text" [(ngModel)]="location" placeholder="Enter location (e.g., Kolkata)" style="padding: 10px; width: 300px; margin-right: 10px; border: 1px solid #ddd; border-radius: 4px;">
+    <button (click)="searchLocation()" style="background: blue; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;">Search</button>
+  </div>
+
+  <div *ngIf="errorMessage" style="color: red; margin-bottom: 20px;">
+    {{ errorMessage }}
+  </div>
+
+  <!-- Dealers Section -->
+  <div style="margin-bottom: 30px;">
+    <h3>Dealers in {{ location }}</h3>
+    <div *ngIf="dealers.length > 0">
+      <ul style="list-style-type: none; padding: 0;">
+        <li *ngFor="let dealer of dealers" style="margin: 10px 0; background: #f9f9f9; padding: 15px; border-radius: 5px;">
+          <h4>{{ dealer.name }}</h4>
+          <p><strong>Mobile:</strong> {{ dealer.mobile }}</p>
+          <p><strong>Address:</strong> {{ dealer.address }}</p>
+          <p><strong>Products Offered:</strong> {{ dealer.productsOffered.join(', ') }}</p>
+          <p><strong>Rating:</strong> {{ dealer.rating }}/5</p>
+          <p><strong>Posted:</strong> {{ dealer.postedDate | date:'short' }} by {{ dealer.postedBy ? dealer.postedBy.name : 'Anonymous' }}</p>
+        </li>
+      </ul>
+    </div>
+    <div *ngIf="dealers.length === 0 && location" style="color: gray;">
+      No dealers found in {{ location }}.
+    </div>
+  </div>
+
+  <!-- Markets Section -->
+  <div>
+    <h3>Markets in {{ location }}</h3>
+    <div *ngIf="markets.length > 0">
+      <ul style="list-style-type: none; padding: 0;">
+        <li *ngFor="let market of markets" style="margin: 10px 0; background: #f9f9f9; padding: 15px; border-radius: 5px;">
+          <h4>{{ market.name }}</h4>
+          <p><strong>Type:</strong> {{ market.type }}</p>
+          <p><strong>Timings:</strong> {{ market.timings }}</p>
+          <p><strong>Contact:</strong> {{ market.contact }}</p>
+          <p><strong>Commodities:</strong> {{ market.commodities.join(', ') }}</p>
+          <p><strong>Rating:</strong> {{ market.rating }}/5</p>
+          <p><strong>Posted:</strong> {{ market.postedDate | date:'short' }}</p>
+        </li>
+      </ul>
+    </div>
+    <div *ngIf="markets.length === 0 && location" style="color: gray;">
+      No markets found in {{ location }}.
+    </div>
+  </div>
+</div>

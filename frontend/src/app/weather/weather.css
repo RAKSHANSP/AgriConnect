@@ -1,0 +1,16 @@
+h2 {
+  color: #333;
+}
+
+input {
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+button {
+  border-radius: 4px;
+}
+
+div[style*="background: #f9f9f9"], li {
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}

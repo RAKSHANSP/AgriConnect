@@ -1,0 +1,15 @@
+h3 {
+  color: #333;
+}
+
+ul {
+  text-align: left;
+}
+
+li {
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+input, button {
+  border-radius: 4px;
+}

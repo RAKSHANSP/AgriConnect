@@ -1,0 +1,17 @@
+<div style="text-align: center; padding: 50px;">
+  <h2>Signup to Agri Connect</h2>
+  <form (ngSubmit)="onSubmit()" style="display: inline-block; text-align: left;">
+    <input type="text" [(ngModel)]="user.name" name="name" placeholder="Name" required style="display: block; margin: 10px 0; padding: 10px; width: 300px;"><br>
+    <select [(ngModel)]="user.role" name="role" required style="display: block; margin: 10px 0; padding: 10px; width: 300px;">
+      <option value="" disabled>Select User Type</option>
+      <option value="dealer">Dealer</option>
+      <option value="farmer">Farmer</option>
+      <option value="govtOfficial">Govt Official</option>
+      <option value="buyer">Buyer</option>
+    </select><br>
+    <input type="email" [(ngModel)]="user.email" name="email" placeholder="Email" required autocomplete="new-email" style="display: block; margin: 10px 0; padding: 10px; width: 300px;"><br>
+    <input type="password" [(ngModel)]="user.password" name="password" placeholder="Password" required autocomplete="new-password" style="display: block; margin: 10px 0; padding: 10px; width: 300px;"><br>
+    <button type="submit" style="background: green; color: white; padding: 10px; width: 300px; border: none; cursor: pointer;">Signup</button>
+  </form>
+  <p>Already have an account? <a href="/login">Login</a></p>
+</div>

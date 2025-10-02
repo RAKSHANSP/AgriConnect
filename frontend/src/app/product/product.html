@@ -1,0 +1,43 @@
+<div class="container">
+  <h1 style="text-align: center; color: #333;">Product Listing</h1>
+  
+  <!-- Search Bar -->
+  <div style="text-align: center; margin: 20px 0;">
+    <input type="text" [(ngModel)]="searchTerm" placeholder="Search products..." class="search-input">
+    <button (click)="loadProducts()" class="search-btn">Search</button>
+  </div>
+
+  <!-- Plus Button -->
+  <button class="plus-btn" (click)="showAddForm()">+ Add Product</button>
+
+  <!-- Add/Edit Form (Shown when showForm = true) -->
+  <div *ngIf="showForm" class="form-modal">
+    <h3>{{ isEditing ? 'Edit Product' : 'Add New Product' }}</h3>
+    <input type="text" [(ngModel)]="currentProduct.name" placeholder="Name" class="input-field">
+    <textarea [(ngModel)]="currentProduct.description" placeholder="Description" class="input-field" rows="3"></textarea>
+    <input type="number" [(ngModel)]="currentProduct.quantity" placeholder="Quantity" class="input-field">
+    <input type="number" [(ngModel)]="currentProduct.price" placeholder="Price (₹)" class="input-field">
+    <input type="text" [(ngModel)]="currentProduct.location" placeholder="Location" class="input-field">
+    <input type="text" [(ngModel)]="currentProduct.phone" placeholder="Phone Number" class="input-field">
+    <input type="file" (change)="onFileSelected($event)" accept="image/*" class="input-field">
+    <button (click)="saveProduct()" class="save-btn">{{ isEditing ? 'Update' : 'Add' }}</button>
+    <button (click)="hideForm()" class="cancel-btn">Cancel</button>
+  </div>
+
+  <!-- Product Grid -->
+  <div class="product-grid">
+    <div *ngFor="let product of products" class="product-card">
+      <img *ngIf="product.imageUrl" [src]="'http://localhost:5000' + product.imageUrl" alt="Product Image" class="product-image">
+      <h3>{{ product.name }}</h3>
+      <p class="description">{{ product.description }}</p>
+      <p><strong>Quantity:</strong> <span (click)="isOwner(product) ? updateQuantityInline($event, product._id) : null" contenteditable="isOwner(product)" class="editable-quantity">{{ product.quantity }}</span></p>
+      <p><strong>Price:</strong> ₹{{ product.price }}</p>
+      <p><strong>Location:</strong> {{ product.location }}</p>
+      <p><strong>Phone:</strong> {{ product.phone }}</p>
+      <p><strong>Posted:</strong> {{ product.postedDate | date:'short' }} by {{ product.postedBy.name }}</p>
+      <button *ngIf="isOwner(product)" (click)="editProduct(product)" class="edit-btn">Edit</button>
+      <button *ngIf="isOwner(product)" (click)="deleteProduct(product._id)" class="delete-btn">Delete</button>
+      <button (click)="buyProduct(product)" class="buy-btn">Buy Now</button>
+    </div>
+  </div>
+</div>
