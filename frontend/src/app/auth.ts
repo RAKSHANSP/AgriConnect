@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
+import { Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -15,13 +16,7 @@ export class AuthService {
     });
   }
 
-  login(credentials: any) {
-    return this.http.post('http://localhost:5000/login', credentials).subscribe({
-      next: (res: any) => {
-        localStorage.setItem('token', res.token);
-        this.router.navigate(['/dashboard']);
-      },
-      error: (err) => alert(err.error.message) // Show error message
-    });
+  login(credentials: any): Observable<any> {
+    return this.http.post('http://localhost:5000/login', credentials);
   }
 }

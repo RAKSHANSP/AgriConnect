@@ -23,4 +23,13 @@ export class Dashboard {
   goToInformationSharing() {
   this.router.navigate(['/information-sharing']);
 }
+  goToGovtOfficial() {
+    this.router.navigate(['/govt-official']);
+  }
+  goToIndividualChat() { 
+    this.router.navigate(['/individual-chat']);
+   }
+   goToGroupChat() { 
+    this.router.navigate(['/group-chat']);
+   }
 }

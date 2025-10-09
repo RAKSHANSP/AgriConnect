@@ -23,6 +23,7 @@ mongoose.connect('mongodb://localhost:27017/agrconnect', { useNewUrlParser: true
   .then(() => console.log('MongoDB connected'))
   .catch(err => console.log(err));
 
+// ===== Schemas =====
 const UserSchema = new mongoose.Schema({
   name: { type: String, unique: true, required: true },
   role: { type: String, required: true },
@@ -96,9 +97,26 @@ const LikeSchema = new mongoose.Schema({
 });
 const Like = mongoose.model('Like', LikeSchema);
 
+// ===== ✅ Govt Message Schema =====
+const GovtMessageSchema = new mongoose.Schema({
+  text: { type: String, required: true },
+  postedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  postedDate: { type: Date, default: Date.now },
+});
+const GovtMessage = mongoose.model('GovtMessage', GovtMessageSchema);
+
+// ===== ✅ Individual Message Schema =====
+const IndividualMessageSchema = new mongoose.Schema({
+  sender: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  receiver: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  text: { type: String, required: true },
+  sentDate: { type: Date, default: Date.now },
+});
+const IndividualMessage = mongoose.model('IndividualMessage', IndividualMessageSchema);
+
 const JWT_SECRET = '1234567890'; // Change in production
 
-// Multer for image upload
+// ===== Multer for image upload =====
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, UPLOAD_DIR);
@@ -108,19 +126,16 @@ const storage = multer.diskStorage({
     cb(null, uniqueName);
   }
 });
-const upload = multer({ 
-  storage, 
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+const upload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
-    if (file.mimetype.startsWith('image/')) {
-      cb(null, true);
-    } else {
-      cb(new Error('Only images allowed'), false);
-    }
+    if (file.mimetype.startsWith('image/')) cb(null, true);
+    else cb(new Error('Only images allowed'), false);
   }
 });
 
-// Auth middleware
+// ===== Auth Middleware =====
 const authenticateToken = (req, res, next) => {
   const token = req.headers['authorization']?.split(' ')[1];
   if (!token) return res.status(401).json({ message: 'Access denied' });
@@ -140,10 +155,10 @@ const requireAdminRole = (req, res, next) => {
       req.user.fullUser = user;
       next();
     })
-    .catch(err => res.status(500).json({ message: 'Server error' }));
+    .catch(() => res.status(500).json({ message: 'Server error' }));
 };
 
-// Signup
+// ===== Auth Routes =====
 app.post('/signup', async (req, res) => {
   const { name, role, email, password } = req.body;
   try {
@@ -162,7 +177,6 @@ app.post('/signup', async (req, res) => {
   }
 });
 
-// Login
 app.post('/login', async (req, res) => {
   const { email, password } = req.body;
   try {
@@ -174,12 +188,11 @@ app.post('/login', async (req, res) => {
     const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: '1h' });
     res.json({ token, message: 'Login successful', role: user.role });
   } catch (err) {
-    console.error(err);
     res.status(500).json({ message: 'Server error' });
   }
 });
 
-// Products (Authenticated for modify, public for get)
+// ===== Product Routes =====
 app.post('/products', authenticateToken, upload.single('image'), async (req, res) => {
   const { name, description, quantity, price, location, phone } = req.body;
   try {
@@ -188,7 +201,6 @@ app.post('/products', authenticateToken, upload.single('image'), async (req, res
     await product.save();
     res.status(201).json({ message: 'Product added', product });
   } catch (err) {
-    console.error(err);
     if (err.code === 11000) return res.status(400).json({ message: 'Duplicate product entry' });
     res.status(500).json({ message: 'Server error' });
   }
@@ -200,8 +212,7 @@ app.get('/products', async (req, res) => {
     const query = search ? { name: { $regex: search, $options: 'i' } } : {};
     const products = await Product.find(query).populate('postedBy', 'name');
     res.json(products);
-  } catch (err) {
-    console.error(err);
+  } catch {
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -209,15 +220,13 @@ app.get('/products', async (req, res) => {
 app.put('/products/:id', authenticateToken, upload.single('image'), async (req, res) => {
   try {
     const product = await Product.findById(req.params.id).populate('postedBy');
-    if (product.postedBy._id.toString() !== req.user.userId) {
+    if (product.postedBy._id.toString() !== req.user.userId)
       return res.status(403).json({ message: 'Not authorized' });
-    }
     const updateData = req.body;
     if (req.file) updateData.imageUrl = `/uploads/${req.file.filename}`;
     const updated = await Product.findByIdAndUpdate(req.params.id, updateData, { new: true });
     res.json({ message: 'Product updated', product: updated });
-  } catch (err) {
-    console.error(err);
+  } catch {
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -225,25 +234,22 @@ app.put('/products/:id', authenticateToken, upload.single('image'), async (req, 
 app.delete('/products/:id', authenticateToken, async (req, res) => {
   try {
     const product = await Product.findById(req.params.id).populate('postedBy');
-    if (product.postedBy._id.toString() !== req.user.userId) {
+    if (product.postedBy._id.toString() !== req.user.userId)
       return res.status(403).json({ message: 'Not authorized' });
-    }
     await Product.findByIdAndDelete(req.params.id);
     res.json({ message: 'Product deleted' });
-  } catch (err) {
-    console.error(err);
+  } catch {
     res.status(500).json({ message: 'Server error' });
   }
 });
 
-// Dealers (Admin-only for modify)
+// ===== Dealer Routes =====
 app.post('/dealers', authenticateToken, requireAdminRole, async (req, res) => {
   try {
     const dealer = new Dealer({ ...req.body, postedBy: req.user.fullUser._id });
     await dealer.save();
     res.status(201).json({ message: 'Dealer added', dealer });
   } catch (err) {
-    console.error(err);
     if (err.code === 11000) return res.status(400).json({ message: 'Duplicate dealer entry' });
     res.status(500).json({ message: 'Server error' });
   }
@@ -255,20 +261,18 @@ app.get('/dealers', async (req, res) => {
     const query = location ? { location: { $regex: location, $options: 'i' } } : {};
     const dealers = await Dealer.find(query).populate('postedBy', 'name');
     res.json(dealers);
-  } catch (err) {
-    console.error(err);
+  } catch {
     res.status(500).json({ message: 'Server error' });
   }
 });
 
-// Markets (Admin-only for modify)
+// ===== Market Routes =====
 app.post('/markets', authenticateToken, requireAdminRole, async (req, res) => {
   try {
     const market = new Market(req.body);
     await market.save();
     res.status(201).json({ message: 'Market added', market });
   } catch (err) {
-    console.error(err);
     if (err.code === 11000) return res.status(400).json({ message: 'Duplicate market entry' });
     res.status(500).json({ message: 'Server error' });
   }
@@ -280,13 +284,12 @@ app.get('/markets', async (req, res) => {
     const query = location ? { location: { $regex: location, $options: 'i' } } : {};
     const markets = await Market.find(query);
     res.json(markets);
-  } catch (err) {
-    console.error(err);
+  } catch {
     res.status(500).json({ message: 'Server error' });
   }
 });
 
-// Posts
+// ===== Post Routes =====
 app.post('/posts', authenticateToken, upload.single('image'), async (req, res) => {
   const { text } = req.body;
   try {
@@ -296,47 +299,56 @@ app.post('/posts', authenticateToken, upload.single('image'), async (req, res) =
     await post.save();
     const populatedPost = await Post.findById(post._id).populate('postedBy', 'name role');
     res.status(201).json({ message: 'Post created', post: populatedPost });
-  } catch (err) {
-    console.error(err);
+  } catch {
     res.status(500).json({ message: 'Server error' });
   }
 });
 
 app.get('/posts', async (req, res) => {
   try {
-    const posts = await Post.find().sort({ postedDate: -1 }).populate('postedBy', 'name role').populate({
-      path: 'comments',
-      populate: { path: 'commentedBy', select: 'name' }
-    }).exec();
+    const posts = await Post.find()
+      .sort({ postedDate: -1 })
+      .populate('postedBy', 'name role')
+      .populate({ path: 'comments', populate: { path: 'commentedBy', select: 'name' } });
     res.json(posts);
-  } catch (err) {
-    console.error(err);
+  } catch {
     res.status(500).json({ message: 'Server error' });
   }
 });
 
-// Comments
+app.delete('/posts/:id', authenticateToken, async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    if (!post) return res.status(404).json({ message: 'Post not found' });
+    if (post.postedBy.toString() !== req.user.userId)
+      return res.status(403).json({ message: 'Not authorized' });
+    await Post.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Post deleted successfully' });
+  } catch {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// ===== Comment Routes =====
 app.post('/posts/:postId/comments', authenticateToken, async (req, res) => {
   const { text } = req.body;
   try {
-    if (!text || !text.trim()) return res.status(400).json({ message: 'Comment text required' });
+    if (!text.trim()) return res.status(400).json({ message: 'Comment text required' });
     const comment = new Comment({ text: text.trim(), post: req.params.postId, commentedBy: req.user.userId });
     await comment.save();
     await Post.findByIdAndUpdate(req.params.postId, { $push: { comments: comment._id } });
     const populatedComment = await Comment.findById(comment._id).populate('commentedBy', 'name');
     res.status(201).json({ message: 'Comment added', comment: populatedComment });
-  } catch (err) {
-    console.error(err);
+  } catch {
     res.status(500).json({ message: 'Server error' });
   }
 });
 
-// Likes
+// ===== Like Routes =====
 app.post('/posts/:postId/like', authenticateToken, async (req, res) => {
   try {
     const postId = req.params.postId;
     const userId = req.user.userId;
-
     const existingLike = await Like.findOne({ post: postId, likedBy: userId });
     if (existingLike) {
       await Like.findByIdAndDelete(existingLike._id);
@@ -350,11 +362,112 @@ app.post('/posts/:postId/like', authenticateToken, async (req, res) => {
       const post = await Post.findById(postId);
       return res.json({ message: 'Liked', likesCount: post ? post.likes.length : 0 });
     }
-  } catch (err) {
-    console.error(err);
+  } catch {
     res.status(500).json({ message: 'Server error' });
   }
 });
 
+// ===== Govt Message Routes =====
+app.post('/govt-messages', authenticateToken, async (req, res) => {
+  const { text } = req.body;
+  try {
+    const user = await User.findById(req.user.userId);
+    if (user.role !== 'govtOfficial') return res.status(403).json({ message: 'Govt official access required' });
+    if (!text.trim()) return res.status(400).json({ message: 'Message required' });
+    const message = new GovtMessage({ text, postedBy: req.user.userId });
+    await message.save();
+    const populatedMessage = await GovtMessage.findById(message._id).populate('postedBy', 'name');
+    res.status(201).json({ message: 'Posted successfully', message: populatedMessage });
+  } catch {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+app.get('/govt-messages', async (req, res) => {
+  try {
+    const messages = await GovtMessage.find().sort({ postedDate: -1 }).populate('postedBy', 'name role');
+    res.json(messages);
+  } catch {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// ===== ✅ Individual Messaging Routes =====
+
+// Get users for sidebar
+app.get('/users', authenticateToken, async (req, res) => {
+  try {
+    const users = await User.find({ _id: { $ne: req.user.userId } }).select('name email role');
+    res.json(users);
+  } catch {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Send message
+app.post('/individual-messages', authenticateToken, async (req, res) => {
+  const { receiverId, text } = req.body;
+  try {
+    if (!text.trim()) return res.status(400).json({ message: 'Message required' });
+    const message = new IndividualMessage({ sender: req.user.userId, receiver: receiverId, text });
+    await message.save();
+    const populatedMessage = await IndividualMessage.findById(message._id).populate('sender receiver', 'name');
+    res.status(201).json({ message: 'Sent', message: populatedMessage });
+  } catch {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Get messages between users
+app.get('/individual-messages/:receiverId', authenticateToken, async (req, res) => {
+  try {
+    const messages = await IndividualMessage.find({
+      $or: [
+        { sender: req.user.userId, receiver: req.params.receiverId },
+        { sender: req.params.receiverId, receiver: req.user.userId }
+      ]
+    }).sort({ sentDate: 1 }).populate('sender receiver', 'name');
+    res.json(messages);
+  } catch {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Group Message Schema (assume one global group for simplicity; use groupId for multiple)
+const GroupMessageSchema = new mongoose.Schema({
+  groupId: { type: String, default: 'global' }, // For future groups
+  sender: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  text: { type: String, required: true },
+  sentDate: { type: Date, default: Date.now },
+});
+
+const GroupMessage = mongoose.model('GroupMessage', GroupMessageSchema);
+
+// Send group message
+app.post('/group-messages', authenticateToken, async (req, res) => {
+  const { text, groupId = 'global' } = req.body;
+  try {
+    if (!text.trim()) return res.status(400).json({ message: 'Message required' });
+    const message = new GroupMessage({ groupId, sender: req.user.userId, text });
+    await message.save();
+    const populatedMessage = await GroupMessage.findById(message._id).populate('sender', 'role');
+    res.status(201).json({ message: 'Message sent', message: populatedMessage });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Get group messages
+app.get('/group-messages/:groupId', async (req, res) => {
+  const { groupId = 'global' } = req.params;
+  try {
+    const messages = await GroupMessage.find({ groupId }).sort({ sentDate: 1 }).populate('sender', 'role');
+    res.json(messages);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// ===== Start Server =====
 const PORT = 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

@@ -23,6 +23,9 @@
   <div class="post-footer">
     <button (click)="toggleLike(post._id)">❤️ {{ post.likes.length }}</button>
     <small>{{ post.postedDate | date:'short' }}</small>
+
+    <!-- ✅ Delete Button (only visible for owner) -->
+    <button *ngIf="isOwner(post)" (click)="deletePost(post._id)" class="delete-btn">🗑 Delete</button>
   </div>
 
   <!-- Comments Section -->

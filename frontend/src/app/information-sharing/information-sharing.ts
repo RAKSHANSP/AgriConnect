@@ -7,7 +7,7 @@ interface Post {
   _id: string;
   text: string;
   imageUrl?: string;
-  postedBy: { name: string; role: string };
+  postedBy: { _id?: string; name: string; role: string }; // add _id for ownership
   postedDate: Date;
   likes: string[];
   comments: { _id: string; text: string; commentedBy: { name: string }; commentedDate: Date }[];
@@ -88,5 +88,30 @@ export class InformationSharingComponent {
 
   selectPostForComment(postId: string) {
     this.selectedPostId = postId;
+  }
+
+  // ✅ Delete a post
+  deletePost(postId: string) {
+    if (!confirm('Are you sure you want to delete this post?')) return;
+
+    this.http.delete(`http://localhost:5000/posts/${postId}`, {
+      headers: { Authorization: `Bearer ${this.token}` }
+    }).subscribe({
+      next: () => {
+        this.posts = this.posts.filter(p => p._id !== postId); // update UI
+      },
+      error: (err) => alert('Error deleting post: ' + (err.error?.message || 'Unknown error'))
+    });
+  }
+
+  // ✅ Check if current logged-in user is the post owner
+  isOwner(post: Post): boolean {
+    if (!this.token) return false;
+    try {
+      const payload = JSON.parse(atob(this.token.split('.')[1])); // decode JWT
+      return post.postedBy && (post.postedBy as any)._id === payload.userId;
+    } catch {
+      return false;
+    }
   }
 }

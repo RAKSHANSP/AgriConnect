@@ -1,0 +1,21 @@
+<div class="chat-container">
+  <div class="chat-area">
+    <div class="chat-header">
+      Global Group Chat
+    </div>
+    <div class="messages-feed">
+      <div *ngFor="let msg of messages" class="message" [class.sent]="isOwnMessage(msg)">
+        <strong>{{ msg.sender.name }} ({{ msg.sender.role }})</strong> - {{ msg.sentDate | date:'short' }}
+        <p>{{ msg.text }}</p>
+        <button *ngIf="isOwnMessage(msg)" (click)="deleteOwnMessage(msg._id)" class="delete-btn">Delete</button>
+      </div>
+    </div>
+    <div class="message-input">
+      <input type="text" [(ngModel)]="newMessageText" placeholder="Type a message..." (keyup.enter)="sendMessage()">
+      <button (click)="sendMessage()">Send</button>
+    </div>
+  </div>
+  <div *ngIf="messages.length === 0" class="no-messages">
+    No messages yet. Start the conversation!
+  </div>
+</div>

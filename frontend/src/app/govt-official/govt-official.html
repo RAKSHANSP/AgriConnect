@@ -1,0 +1,19 @@
+<div class="chat-container">
+  <div class="chat-area">
+    <h2>Government Announcements</h2>
+    <div *ngIf="userRole === 'govtOfficial'" class="post-form">
+      <textarea [(ngModel)]="newMessageText" placeholder="Share an announcement..." rows="3" class="message-input"></textarea>
+      <button (click)="postMessage()" class="post-btn">Send Announcement</button>
+    </div>
+    <div *ngIf="userRole !== 'govtOfficial'" class="view-only">
+      <p>Only government officials can post announcements.</p>
+    </div>
+    <div class="messages-feed" *ngIf="messages.length > 0">
+      <div *ngFor="let msg of messages" class="message-card">
+        <strong>{{ msg.postedBy.name }} (Govt Official)</strong> - {{ msg.postedDate | date:'short' }}
+        <p>{{ msg.text }}</p>
+      </div>
+    </div>
+    <p *ngIf="messages.length === 0" class="no-messages">No announcements yet.</p>
+  </div>
+</div>
