@@ -1,10 +1,12 @@
 import { Component } from '@angular/core';
-import { Router } from '@angular/router'; // Import Router for navigation
+import { Router } from '@angular/router';
+import { CommonModule } from '@angular/common'; // Add CommonModule for common directives
+import { RouterModule } from '@angular/router'; // Add RouterModule for routerLink
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [], // Add necessary imports here (e.g., RouterLink if used directly)
+  imports: [CommonModule, RouterModule], // Add required imports
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.css']
 })
@@ -18,18 +20,18 @@ export class Dashboard {
     this.router.navigate(['/products']);
   }
   goToDealerMarket() {
-  this.router.navigate(['/dealer-market']);
+    this.router.navigate(['/dealer-market']);
   }
   goToInformationSharing() {
-  this.router.navigate(['/information-sharing']);
-}
+    this.router.navigate(['/information-sharing']);
+  }
   goToGovtOfficial() {
     this.router.navigate(['/govt-official']);
   }
   goToIndividualChat() { 
     this.router.navigate(['/individual-chat']);
-   }
-   goToGroupChat() { 
+  }
+  goToGroupChat() { 
     this.router.navigate(['/group-chat']);
-   }
+  }
 }

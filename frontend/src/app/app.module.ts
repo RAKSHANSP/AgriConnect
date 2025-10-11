@@ -1,23 +1,18 @@
-import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { NgModule } from '@angular/core';
+import { BrowserModule } from '@angular/platform-browser';
 import { HttpClientModule } from '@angular/common/http';
+import { RouterModule } from '@angular/router';
 
-import { Home } from './home/home';
-import {  Signup } from './signup/signup';
-import { Login } from './login/login';
-import { Dashboard } from './dashboard/dashboard';
+import { App } from './app';
+import { routes } from './app.routes';
 
-@Component({
-  selector: 'app-root',
-  standalone: true,
+@NgModule({
+  declarations: [],
   imports: [
-    RouterOutlet,
-    HttpClientModule,   // ✅ Import HttpClientModule here
-    Home,
-    Signup,
-    Login,
-    Dashboard
+    BrowserModule,
+    HttpClientModule,
+    RouterModule.forRoot(routes),
   ],
-  template: '<router-outlet></router-outlet>',
+  bootstrap: [AppModule],
 })
-export class App {}
+export class AppModule {}
